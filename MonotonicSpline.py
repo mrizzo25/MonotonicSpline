@@ -38,7 +38,7 @@ def monotonic_cubic_spline(x_values, y_values):
     return consts
     
 
-def linear_extrapolation(x_values, y_values):
+def lin_extrapolate(x_values, y_values):
     """
     Extrapolate data linearly at endpoints
     """
@@ -55,41 +55,41 @@ def linear_extrapolation(x_values, y_values):
     return line_consts
 
 
-def interp_func(x, x_table, y_table, consts, extrap_consts=None, extrap_order=None, verbose=False):
+def interp_func(x, x_table, y_table, consts, extrap_consts=None, verbose=False):
     """
     Predict y value using interpolating functions
     """
 
-    for i in np.arange(0,len(x_table)-1,1):
+    for i in np.arange(0, len(x_table)-1, 1):
       
-        if x_table[i]<x and x_table[i+1]>x:
-            ans=y_table[i]+consts[i,0]*(x-x_table[i])+consts[i,1]*(x-x_table[i])**2+consts[i,2]*(x-x_table[i])**3
+        if x_table[i] < x and x_table[i+1] > x:
+            ans = y_table[i] + consts[i,0] * (x - x_table[i]) + consts[i,1] * (x - x_table[i])**2 + consts[i,2] * (x - x_table[i])**3
 
-            if verbose==True:
+            if verbose == True:
                 print "Input", x
                 print "Output", ans
             return ans
 
-        elif x==x_table[i]:
-            ans=y_table[i]
-            if verbose==True:
+        elif x == x_table[i]:
+            ans = y_table[i]
+            if verbose == True:
                 print "Input", x
                 print "Output", ans
             return ans
 
-        elif x==x_table[i+1]:
-            ans=y_table[i+1]
-            if verbose==True:
+        elif x == x_table[i+1]:
+            ans = y_table[i+1]
+            if verbose == True:
                 print "Input", x
                 print "Output", ans
             return ans
 
-    if extrap_consts!=None and extrap_order=='linear':
+    if extrap_consts != None:
 
-        if x<x_table[0]:
-            return line_consts[0,0]*x+line_consts[0,1]
-        elif x>x_table[-1]:
-            return line_consts[1,0]*x+line_consts[1,1]
+        if x < x_table[0]:
+            return extrap_consts[0,0] * x + extrap_consts[0,1]
+        elif x > x_table[-1]:
+            return extrap_consts[1,0] * x + extrap_consts[1,1]
     else:
         print "X value outside of range"        
         return None
@@ -100,7 +100,7 @@ class Cubic:
     Construct (monotonicity enforcing) cubic spline of data
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, extrapolate=False):
         """
         Fit x and y data using monotonic cubic spline   
         """
@@ -110,21 +110,15 @@ class Cubic:
             raise ValueError("X and Y arrays must be the same size")
             
         self.coefficients = monotonic_cubic_spline(x, y)
-        self.ext_coefficients = None
-        self.ext_order = None
+
+		if extrapolate == True:
+			self.ext_coefficients = lin_extrapolate(x, y)
+		else:
+			self.ext_coefficients = None
+
         self.x_table = x
         self.y_table = y
-    
-    def extrapolate(self, x, y, order='linear'):
-		"""
-		Extrapolate data past endpoints
-		"""     
-		if order == 'linear':
-			self.ext_order = 'linear'
-			ext_coefficients = linear_extrapolation(x, y)
-        
-		self.ext_coefficents = ext_coefficients 
-
+   
     def predict(self, x, verbose=False):
 		"""
 		Use interpolating splines to predict y value(s) given x value(s)
@@ -133,10 +127,10 @@ class Cubic:
 			y_predict = np.zeros(len(x))
 				
 			for i in range(len(x)):
-				y_predict[i] = interp_func(x[i], self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, extrap_order=self.ext_order, verbose=verbose)
+				y_predict[i] = interp_func(x[i], self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, verbose=verbose)
 
 		else:
-			y_predict = interp_func(x, self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, extrap_order=self.ext_order, verbose=verbose)
+			y_predict = interp_func(x, self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, verbose=verbose)
 
 		return y_predict
 

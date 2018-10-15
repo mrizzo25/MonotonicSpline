@@ -1,2 +1,3 @@
 #ignore compiled code
 /MonotonicSpline.pyc
+.ipynb_checkpoints/

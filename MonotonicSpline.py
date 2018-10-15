@@ -55,7 +55,7 @@ def lin_extrapolate(x_values, y_values):
     return line_consts
 
 
-def interp_func(x, x_table, y_table, consts, extrap_consts=None, verbose=False):
+def interp_func(x, x_table, y_table, consts, extrapolate=False, extrap_consts=None, verbose=False):
     """
     Predict y value using interpolating functions
     """
@@ -84,15 +84,17 @@ def interp_func(x, x_table, y_table, consts, extrap_consts=None, verbose=False):
                 print "Output", ans
             return ans
 
-    if extrap_consts != None:
+    if extrapolate == False:
+
+        print "X value outside of range"
+        return None
+    
+    else:
 
         if x < x_table[0]:
             return extrap_consts[0,0] * x + extrap_consts[0,1]
         elif x > x_table[-1]:
             return extrap_consts[1,0] * x + extrap_consts[1,1]
-    else:
-        print "X value outside of range"        
-        return None
     
 
 class Cubic:
@@ -106,31 +108,32 @@ class Cubic:
         """
 
         #make sure the x and y arrays are the same size
-      	if len(x) != len(y):
-           	raise ValueError("X and Y arrays must be the same size")
-            
-		self.coefficients = monotonic_cubic_spline(x, y)
+        if len(x) != len(y):
+            raise ValueError("X and Y arrays must be the same size")
+        
+        self.coefficients = monotonic_cubic_spline(x, y)
 
-		if extrapolate == True:
-			self.ext_coefficients = lin_extrapolate(x, y)
-		else:
-			self.ext_coefficients = None
+        if extrapolate == True:
+            self.ext_coefficients = lin_extrapolate(x, y)
+        else:
+            self.ext_coefficients = None
 
+    	self.extrapolate = extrapolate
         self.x_table = x
         self.y_table = y
    
     def predict(self, x, verbose=False):
-		"""
-		Use interpolating splines to predict y value(s) given x value(s)
-		"""
-		if hasattr(x, '__iter__'):
-			y_predict = np.zeros(len(x))
-				
-			for i in range(len(x)):
-				y_predict[i] = interp_func(x[i], self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, verbose=verbose)
+        """
+        Use interpolating splines to predict y value(s) given x value(s)
+        """
+        if hasattr(x, '__iter__'):
+            y_predict = np.zeros(len(x))
+            	
+            for i in range(len(x)):
+            	y_predict[i] = interp_func(x[i], self.x_table, self.y_table, self.coefficients, extrapolate = self.extrapolate, extrap_consts=self.ext_coefficients, verbose=verbose)
 
-		else:
-			y_predict = interp_func(x, self.x_table, self.y_table, self.coefficients, extrap_consts=self.ext_coefficients, verbose=verbose)
+        else:
+            y_predict = interp_func(x, self.x_table, self.y_table, self.coefficients, extrapolate = self.extrapolate, extrap_consts=self.ext_coefficients, verbose=verbose)
 
-		return y_predict
+        return y_predict
 

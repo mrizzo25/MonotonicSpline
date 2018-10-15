@@ -106,10 +106,10 @@ class Cubic:
         """
 
         #make sure the x and y arrays are the same size
-        if len(x) != len(y):
-            raise ValueError("X and Y arrays must be the same size")
+      	if len(x) != len(y):
+           	raise ValueError("X and Y arrays must be the same size")
             
-        self.coefficients = monotonic_cubic_spline(x, y)
+		self.coefficients = monotonic_cubic_spline(x, y)
 
 		if extrapolate == True:
 			self.ext_coefficients = lin_extrapolate(x, y)

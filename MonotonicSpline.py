@@ -110,7 +110,13 @@ class Cubic:
         #make sure the x and y arrays are the same size
         if len(x) != len(y):
             raise ValueError("X and Y arrays must be the same size")
-        
+
+		#sort x values (important for randomly sampled data)
+		sort = np.argsort(x)
+	
+		x = x[sort]
+        y = y[sort]
+
         self.coefficients = monotonic_cubic_spline(x, y)
 
         if extrapolate == True:
